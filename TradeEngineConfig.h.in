@@ -1,0 +1,2 @@
+#define TradeEngine_VERSION_MAJOR @TradeEngine_VERSION_MAJOR@
+#define TradeEngine_VERSION_MINOR @TradeEngine_VERSION_MINOR@
