@@ -59,9 +59,6 @@ void runClient()
             else if (line.size() > 1 && line[1] == 's')
                 cout << line;
         }
-
-        cout << "Done" << endl;
-
     }
     catch (exception& e)
     {

@@ -12,33 +12,35 @@ server(server)
 void TradeEngine::run()
 {
     string input;
-    while(true)
+    try
     {
-        if (!server->isInputQueueEmpty())
-            server->setProcessing(true);
-        input = server->processInputQueue();
-        while (!input.empty())
+        while (true)
         {
-            string delimiter = ", ";
-            string token = input.substr(0, input.find(delimiter));
-            input.erase(0, input.find(delimiter) + delimiter.length());
-            if (token == "N")
-            {
-                processNewOrder(input);
-            }
-            else if (token == "C")
-            {
-                processCancelOrder(input);
-            }
-            else if (token[0] == 'F')
-            {
-                orderBook.clear();
-            }
-            server->pushToOutputQueue("---eor");
+            if (!server->isInputQueueEmpty())
+                server->setProcessing(true);
             input = server->processInputQueue();
+            while (!input.empty())
+            {
+                string delimiter = ", ";
+                string token = input.substr(0, input.find(delimiter));
+                input.erase(0, input.find(delimiter) + delimiter.length());
+                if (token == "N")
+                {
+                    processNewOrder(input);
+                } else if (token == "C")
+                {
+                    processCancelOrder(input);
+                } else if (token[0] == 'F')
+                {
+                    orderBook.clear();
+                }
+                server->pushToOutputQueue("---eor");
+                input = server->processInputQueue();
+            }
+            server->setProcessing(false);
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(2));
         }
-        server->setProcessing(false);
-        boost::this_thread::sleep_for(boost::chrono::milliseconds(2));
+    } catch (boost::thread_interrupted&) {
     }
 }
 

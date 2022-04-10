@@ -13,8 +13,9 @@ int main()
     boost::thread client{runClient};
 
     client.join();
-    /* Uncomment to keep server alive */
-//    server_thread.join();
-//    engine_thread.join();
+    io_service.stop();
+    engine_thread.interrupt();
+    server_thread.join();
+    engine_thread.join();
     return 0;
 }
