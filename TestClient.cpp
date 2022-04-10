@@ -41,25 +41,9 @@ void runClient()
                     cout.write(recv_buf.data(), len);
                     cout << endl;
                 }
-                boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
+                boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
             }
         };
-//        auto str1 = string("N, 1, IBM, 10, 100, B, 1");
-//        sender(str1);
-//        auto str2 = string("N, 1, IBM, 9, 100, B, 2");
-//        sender(str2);
-//        auto str3 = string("N, 1, IBM, 11, 100, B, 3");
-//        sender(str3);
-//        auto str4 = string("N, 1, IBM, 11, 100, B, 4");
-//        sender(str4);
-//        auto str5 = string("N, 1, IBM, 11, 100, S, 5");
-//        sender(str5);
-//        auto str6 = string("C, 1, 3");
-//        sender(str6);
-//        auto str7 = string("C, 1, 1");
-//        sender(str7);
-//        auto str8 = string("C, 1, 4");
-//        sender(str8);
 
         std::ifstream infile("../IO/inputFile.csv");
         std::string line;
@@ -67,39 +51,16 @@ void runClient()
         {
             if (line[0] != '#')
             {
-                if(line.size() > 1)
-                {
-                    cout << "Input: " << line << endl;
+                if (line.size() > 1 || line[0] == 'F')
                     sender(line);
-                }
                 else
                     cout << endl;
             }
-            else
+            else if (line.size() > 1 && line[1] == 's')
                 cout << line;
         }
 
-//        auto str1 = string("N, 1, IBM, 10, 100, B, 1");
-//        sender(str1);
-//        auto str2 = string("N, 1, IBM, 12, 100, S, 2");
-//        sender(str2);
-//        auto str3 = string("N, 2, IBM, 9, 100, B, 101");
-//        sender(str3);
-//        auto str4 = string("N, 2, IBM, 11, 100, S, 102");
-//        sender(str4);
-//        cout << endl;
-//        auto str5 = string("N, 1, IBM, 11, 100, B, 3");
-//        sender(str5);
-//        auto str6 = string("N, 2, IBM, 10, 100, S, 103");
-//        sender(str6);
-//        cout << endl;
-//        auto str7 = string("N, 1, IBM, 10, 100, B, 4");
-//        sender(str7);
-//        auto str8 = string("N, 2, IBM, 11, 100, S, 104");
-//        sender(str8);
-//        auto str9 = string("F");
-//        sender(str9);
-
+        cout << "Done" << endl;
 
     }
     catch (exception& e)

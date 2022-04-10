@@ -25,10 +25,12 @@ void TradeEngine::run()
             if (token == "N")
             {
                 processNewOrder(input);
-            } else if (token == "C")
+            }
+            else if (token == "C")
             {
                 processCancelOrder(input);
-            } else if (token == "F")
+            }
+            else if (token[0] == 'F')
             {
                 orderBook.clear();
             }
@@ -36,7 +38,7 @@ void TradeEngine::run()
             input = server->processInputQueue();
         }
         server->setProcessing(false);
-        boost::this_thread::sleep_for(boost::chrono::milliseconds(100));
+        boost::this_thread::sleep_for(boost::chrono::milliseconds(2));
     }
 }
 
@@ -45,7 +47,7 @@ void TradeEngine::processNewOrder(string& order)
     vector<string> tokenized_order;
     boost::algorithm::split_regex(tokenized_order, order, boost::regex(", "));
     auto ord = Order(tokenized_order);
-    ord.timePlaced = time(nullptr);
+    ord.timePlaced = clock();
     server->pushToOutputQueue(string("A, " + to_string(ord.user) + ", " + to_string(ord.userOrderId)));
 
     auto ord_match = orderBook.getTopMatchingOrder(ord);
@@ -77,25 +79,28 @@ void TradeEngine::processCancelOrder(string& order)
 
 void TradeEngine::takeOrder(Order &order, shared_ptr<Order> match)
 {
-    shared_ptr<Order> buy;
-    shared_ptr<Order> sell;
+    shared_ptr<shared_ptr<Order>> buy = make_shared<shared_ptr<Order>>(match);
+    shared_ptr<shared_ptr<Order>> sell = make_shared<shared_ptr<Order>>(match);
     if (order.side == 'B')
-    {
-        buy = make_shared<Order>(order);
-        sell = match;
-    }
+        buy = make_shared<shared_ptr<Order>>(make_shared<Order>(order));
     else
+        sell = make_shared<shared_ptr<Order>>(make_shared<Order>(order));
+    auto& tmp_srv = server;
+    auto printr = [&buy, &sell, &tmp_srv, &order](const int diff, const shared_ptr<Order>& match)
     {
-        buy = match;
-        sell = make_shared<Order>(order);
-    }
+        tmp_srv->pushToOutputQueue(string("T, " + to_string((*buy)->user) + ", " + to_string((*buy)->userOrderId) + ", " +
+                                       to_string((*sell)->user) + ", " + to_string((*sell)->userOrderId) + ", " +
+                                       to_string(match->price) + ", " + to_string(diff)));
+    };
     while(order.quantity > 0 && match != nullptr)
     {
         int diff = 0;
+
         if (order.quantity >= match->quantity)
         {
             diff = match->quantity;
             order.quantity -= diff;
+            printr(diff, match);
             auto top = orderBook.removeOrderFromBook(match->orderId);
             if (!top.empty())
                 server->pushToOutputQueue(top);
@@ -105,15 +110,13 @@ void TradeEngine::takeOrder(Order &order, shared_ptr<Order> match)
             diff = order.quantity;
             match->quantity -= diff;
             order.quantity = 0;
+            printr(diff, match);
             orderBook.removeOrderFromBook(match->orderId);
             auto top = orderBook.addOrderToBook(*match);
             if (!top.empty())
                 server->pushToOutputQueue(top);
         }
 
-        server->pushToOutputQueue(string("T, " + to_string(buy->user) + ", " + to_string(buy->userOrderId) + ", " +
-                                         to_string(sell->user) + ", " + to_string(sell->userOrderId) + ", " +
-                                         to_string(diff) + ", " + to_string(order.price)));
         match = orderBook.getTopMatchingOrder(order);
     }
 }

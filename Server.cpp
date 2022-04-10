@@ -10,7 +10,6 @@ using boost::asio::ip::udp;
 Server::Server(boost::asio::io_service& io_service)
 : socket(io_service, udp::endpoint(udp::v4(), 15))
 {
-    cout << "Server Running" << endl;
     start_receive();
 }
 
@@ -46,7 +45,7 @@ void Server::handle_receive(const boost::system::error_code& error, size_t bytes
 
                 start_receive();
             }
-            boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
+            boost::this_thread::sleep_for(boost::chrono::milliseconds(1));
         }
 
         start_receive();

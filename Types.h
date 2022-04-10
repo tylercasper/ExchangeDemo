@@ -5,6 +5,7 @@
 #include <vector>
 #include <unordered_map>
 #include <boost/thread.hpp>
+#include "time.h"
 
 class ThreadSafeQueue
 {
@@ -31,7 +32,7 @@ public:
     int quantity;
     char side;
     int userOrderId;
-    std::time_t timePlaced;
+    clock_t timePlaced;
 };
 
 class OrderBook
@@ -44,6 +45,7 @@ public:
     std::string removeOrderFromBook(const std::string& user_id, const std::string& user_order_id);
     void clear();
 private:
+    void initMaps(const Order& ord);
     struct OrdCompSell
     {
         bool operator()(const Order& a, const Order& b) const;
@@ -52,9 +54,9 @@ private:
     {
         bool operator()(const Order& a, const Order& b) const;
     };
-    std::unordered_map<std::string, std::map<std::string, Order>> orderBookSell;
+    std::map<std::string, std::map<std::string, Order>> orderBookSell;
     std::map<std::string, std::map<Order, std::string, OrdCompSell>> orderBookSellInverse;
-    std::unordered_map<std::string, std::map<std::string, Order>> orderBookBuy;
+    std::map<std::string, std::map<std::string, Order>> orderBookBuy;
     std::map<std::string, std::map<Order, std::string, OrdCompBuy>> orderBookBuyInverse;
     std::map<std::string, std::string> orderBookLookup;
 };
