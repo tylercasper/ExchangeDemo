@@ -19,3 +19,11 @@ To build and run the exchange demo, execute the following:
     cmake ..
     make
     ./TradeEngine
+
+TODO:
+----
+  * unit tests
+  * performance tests
+  * documentation
+  * containerization
+  * binary wire protocol
