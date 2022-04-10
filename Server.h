@@ -30,7 +30,4 @@ private:
     bool buffer_processing{false};
 };
 
-std::string make_output();
-void runServer();
-
 #endif //TRADEENGINE_SERVER_H

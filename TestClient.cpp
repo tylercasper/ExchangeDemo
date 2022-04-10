@@ -3,7 +3,11 @@
 #include <boost/asio.hpp>
 #include <boost/array.hpp>
 #include <boost/thread.hpp>
+#include <sstream>
+#include <fstream>
+
 using boost::asio::ip::udp;
+using namespace std;
 
 void runClient()
 {
@@ -18,79 +22,88 @@ void runClient()
         udp::socket socket(io_service);
         socket.open(udp::v4());
 
-        auto sender = [&](std::string& msg)
+        auto sender = [&](string& msg)
         {
             auto send_buf2 = boost::asio::buffer(msg);
-//        boost::array<char, 1> send_buf  = { 'a' };
-//            std::cout << "Client: sending message: " << msg << std::endl;
             socket.send_to(boost::asio::buffer(send_buf2), receiver_endpoint);
-//            std::cout << "Client: message sent." << std::endl;
-            std::string str;
+            string str;
             boost::array<char, 128> recv_buf;
-            while (str != "---eof")
+            while (str != "---eor")
             {
                 recv_buf = boost::array<char, 128>();
                 udp::endpoint sender_endpoint;
-//                std::cout << "Client: waiting for response" << std::endl;
                 size_t len = socket.receive_from(boost::asio::buffer(recv_buf), sender_endpoint);
 
-                str = std::string(recv_buf.begin(), recv_buf.begin() + len);
+                str = string(recv_buf.begin(), recv_buf.begin() + len);
 
-                if (str == "---eof")
+                if (str != "---eor")
                 {
-//                    std::cout << "Client: end request: " << str << std::endl << std::endl;
-                }
-                else
-                {
-//                    std::cout << "Client: response received: ";
-                    std::cout.write(recv_buf.data(), len);
-                    std::cout << std::endl;
+                    cout.write(recv_buf.data(), len);
+                    cout << endl;
                 }
                 boost::this_thread::sleep_for(boost::chrono::milliseconds(10));
             }
         };
-//        auto str1 = std::string("N, 1, IBM, 10, 100, B, 1");
+//        auto str1 = string("N, 1, IBM, 10, 100, B, 1");
 //        sender(str1);
-//        auto str2 = std::string("N, 1, IBM, 9, 100, B, 2");
+//        auto str2 = string("N, 1, IBM, 9, 100, B, 2");
 //        sender(str2);
-//        auto str3 = std::string("N, 1, IBM, 11, 100, B, 3");
+//        auto str3 = string("N, 1, IBM, 11, 100, B, 3");
 //        sender(str3);
-//        auto str4 = std::string("N, 1, IBM, 11, 100, B, 4");
+//        auto str4 = string("N, 1, IBM, 11, 100, B, 4");
 //        sender(str4);
-//        auto str5 = std::string("N, 1, IBM, 11, 100, S, 5");
+//        auto str5 = string("N, 1, IBM, 11, 100, S, 5");
 //        sender(str5);
-//        auto str6 = std::string("C, 1, 3");
+//        auto str6 = string("C, 1, 3");
 //        sender(str6);
-//        auto str7 = std::string("C, 1, 1");
+//        auto str7 = string("C, 1, 1");
 //        sender(str7);
-//        auto str8 = std::string("C, 1, 4");
+//        auto str8 = string("C, 1, 4");
 //        sender(str8);
 
-        auto str1 = std::string("N, 1, IBM, 10, 100, B, 1");
-        sender(str1);
-        auto str2 = std::string("N, 1, IBM, 12, 100, S, 2");
-        sender(str2);
-        auto str3 = std::string("N, 2, IBM, 9, 100, B, 101");
-        sender(str3);
-        auto str4 = std::string("N, 2, IBM, 11, 100, S, 102");
-        sender(str4);
-        std::cout << std::endl;
-        auto str5 = std::string("N, 1, IBM, 11, 100, B, 3");
-        sender(str5);
-        auto str6 = std::string("N, 2, IBM, 10, 100, S, 103");
-        sender(str6);
-        std::cout << std::endl;
-        auto str7 = std::string("N, 1, IBM, 10, 100, B, 4");
-        sender(str7);
-        auto str8 = std::string("N, 2, IBM, 11, 100, S, 104");
-        sender(str8);
-        auto str9 = std::string("F");
-        sender(str9);
+        std::ifstream infile("../IO/inputFile.csv");
+        std::string line;
+        while (std::getline(infile, line))
+        {
+            if (line[0] != '#')
+            {
+                if(line.size() > 1)
+                {
+                    cout << "Input: " << line << endl;
+                    sender(line);
+                }
+                else
+                    cout << endl;
+            }
+            else
+                cout << line;
+        }
+
+//        auto str1 = string("N, 1, IBM, 10, 100, B, 1");
+//        sender(str1);
+//        auto str2 = string("N, 1, IBM, 12, 100, S, 2");
+//        sender(str2);
+//        auto str3 = string("N, 2, IBM, 9, 100, B, 101");
+//        sender(str3);
+//        auto str4 = string("N, 2, IBM, 11, 100, S, 102");
+//        sender(str4);
+//        cout << endl;
+//        auto str5 = string("N, 1, IBM, 11, 100, B, 3");
+//        sender(str5);
+//        auto str6 = string("N, 2, IBM, 10, 100, S, 103");
+//        sender(str6);
+//        cout << endl;
+//        auto str7 = string("N, 1, IBM, 10, 100, B, 4");
+//        sender(str7);
+//        auto str8 = string("N, 2, IBM, 11, 100, S, 104");
+//        sender(str8);
+//        auto str9 = string("F");
+//        sender(str9);
 
 
     }
-    catch (std::exception& e)
+    catch (exception& e)
     {
-        std::cerr << e.what() << std::endl;
+        cerr << e.what() << endl;
     }
 }

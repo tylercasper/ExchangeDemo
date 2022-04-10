@@ -3,13 +3,15 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/regex.hpp>
 
-TradeEngine::TradeEngine(std::shared_ptr<Server> server):
+using namespace std;
+
+TradeEngine::TradeEngine(shared_ptr<Server> server):
 server(server)
 {}
 
 void TradeEngine::run()
 {
-    std::string input;
+    string input;
     while(true)
     {
         if (!server->isInputQueueEmpty())
@@ -17,23 +19,20 @@ void TradeEngine::run()
         input = server->processInputQueue();
         while (!input.empty())
         {
-            auto temp = input;
-//            std::cout << "Engine: processing string: " << input << std::endl;
-            std::string delimiter = ", ";
-            std::string token = input.substr(0, input.find(delimiter));
+            string delimiter = ", ";
+            string token = input.substr(0, input.find(delimiter));
             input.erase(0, input.find(delimiter) + delimiter.length());
-            if (token == std::string("N"))
+            if (token == "N")
             {
                 processNewOrder(input);
-            } else if (token == std::string("C"))
+            } else if (token == "C")
             {
                 processCancelOrder(input);
-            } else if (token == std::string("F"))
+            } else if (token == "F")
             {
                 orderBook.clear();
             }
-//            std::cout << "Engine: finished processing order" << std::endl;
-            server->pushToOutputQueue("---eof");
+            server->pushToOutputQueue("---eor");
             input = server->processInputQueue();
         }
         server->setProcessing(false);
@@ -41,16 +40,13 @@ void TradeEngine::run()
     }
 }
 
-void TradeEngine::processNewOrder(std::string& order)
+void TradeEngine::processNewOrder(string& order)
 {
-//    std::cout << "Engine: processing new order string: " << order << std::endl;
-    std::vector<std::string> tokenized_order;
+    vector<string> tokenized_order;
     boost::algorithm::split_regex(tokenized_order, order, boost::regex(", "));
     auto ord = Order(tokenized_order);
-//    std::cout << "Engine: processing new order: " << ord.tobOrdToString() << std::endl;
-
-    ord.time_placed = time(nullptr);
-    server->pushToOutputQueue(std::string("A, " + std::to_string(ord.user) + ", " + std::to_string(ord.user_order_id)));
+    ord.timePlaced = time(nullptr);
+    server->pushToOutputQueue(string("A, " + to_string(ord.user) + ", " + to_string(ord.userOrderId)));
 
     auto ord_match = orderBook.getTopMatchingOrder(ord);
     if (ord_match == nullptr && ord.price != 0)
@@ -64,28 +60,25 @@ void TradeEngine::processNewOrder(std::string& order)
         if (ord.quantity > 0 && ord.price != 0)
             addToBook(ord);
     }
-
 }
 
-void TradeEngine::processCancelOrder(std::string& order)
+void TradeEngine::processCancelOrder(string& order)
 {
-//    std::cout << "Engine: canceling order: " << order << std::endl;
-    std::string delimiter = ", ";
-    std::string user = order.substr(0, order.find(delimiter));
+    string delimiter = ", ";
+    string user = order.substr(0, order.find(delimiter));
     order.erase(0, order.find(delimiter) + delimiter.length());
-    std::string id = order.substr(0, order.find(delimiter));
-    auto top = orderBook.removeOrderFromBook(user, id);
-    server->pushToOutputQueue(std::string("A, " + user + ", " + id));
+    string id = order.substr(0, order.find(delimiter));
+
+    string top = orderBook.removeOrderFromBook(user, id);
+    server->pushToOutputQueue(string("A, " + user + ", " + id));
     if (!top.empty())
         server->pushToOutputQueue(top);
-
 }
 
-void TradeEngine::takeOrder(Order &order, std::shared_ptr<Order> match)
+void TradeEngine::takeOrder(Order &order, shared_ptr<Order> match)
 {
-    using namespace std;
-    std::shared_ptr<Order> buy;
-    std::shared_ptr<Order> sell;
+    shared_ptr<Order> buy;
+    shared_ptr<Order> sell;
     if (order.side == 'B')
     {
         buy = make_shared<Order>(order);
@@ -103,7 +96,7 @@ void TradeEngine::takeOrder(Order &order, std::shared_ptr<Order> match)
         {
             diff = match->quantity;
             order.quantity -= diff;
-            auto top = orderBook.removeOrderFromBook(match->order_id);
+            auto top = orderBook.removeOrderFromBook(match->orderId);
             if (!top.empty())
                 server->pushToOutputQueue(top);
         }
@@ -112,15 +105,15 @@ void TradeEngine::takeOrder(Order &order, std::shared_ptr<Order> match)
             diff = order.quantity;
             match->quantity -= diff;
             order.quantity = 0;
-            orderBook.removeOrderFromBook(match->order_id);
+            orderBook.removeOrderFromBook(match->orderId);
             auto top = orderBook.addOrderToBook(*match);
             if (!top.empty())
                 server->pushToOutputQueue(top);
         }
 
-        server->pushToOutputQueue(string("T, " + to_string(buy->user) + ", " + to_string(buy->user_order_id) + ", " +
-                                                 to_string(sell->user) + ", " + to_string(sell->user_order_id) + ", " +
-                                                 to_string(diff) + ", " + to_string(order.price)));
+        server->pushToOutputQueue(string("T, " + to_string(buy->user) + ", " + to_string(buy->userOrderId) + ", " +
+                                         to_string(sell->user) + ", " + to_string(sell->userOrderId) + ", " +
+                                         to_string(diff) + ", " + to_string(order.price)));
         match = orderBook.getTopMatchingOrder(order);
     }
 }
@@ -129,7 +122,5 @@ void TradeEngine::addToBook(Order &order)
 {
     auto top = orderBook.addOrderToBook(order);
     if (!top.empty())
-    {
         server->pushToOutputQueue(top);
-    }
 }
