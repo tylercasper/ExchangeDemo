@@ -1,4 +1,4 @@
-Kraken Exchange Demo
+Exchange Demo
 ====================
 
 C++ Build
@@ -13,8 +13,8 @@ To build from source, the following tools/libraries are needed:
 
 To build and run the exchange demo, execute the following:
 
-    git clone https://github.com/tylercasper/KrakenExchangeDemo.git
-    cd KrakenExchangeDemo
+    git clone https://github.com/tylercasper/ExchangeDemo.git
+    cd ExchangeDemo
     mkdir build && cd build
     cmake ..
     make
